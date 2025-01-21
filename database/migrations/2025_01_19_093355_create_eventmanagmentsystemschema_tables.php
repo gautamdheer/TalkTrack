@@ -11,6 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // TalkProposals Table
+        Schema::create('talk_proposals', function (Blueprint $table) {
+            $table->id();
+            $table->string('title');
+            $table->string('description');
+            $table->unsignedBigInteger('speaker_id');
+            $table->string('presentation_path')->nullable();
+            $table->string('scheduled_at')->nullable();
+            $table->string('status');
+            $table->timestamps();
+        });
+
          // Revision History Table
          Schema::create('revisions', function (Blueprint $table) {
             $table->id();
@@ -60,6 +72,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('talk_proposals');
         Schema::dropIfExists('revisions');
         Schema::dropIfExists('tags');
         Schema::dropIfExists('taggables');
