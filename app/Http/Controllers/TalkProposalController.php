@@ -1,61 +1,59 @@
     <?php
 
-    namespace App\Http\Controllers;
-
     use Illuminate\Http\Request;
     use App\Models\TalkProposal;
-    use App\Http\Requests\TalkProposalRequest;
 
     class TalkProposalController extends Controller
     {
             
-        public function store(TalkProposalRequest $request)
+        public function store(Request $request)
         {
-            $validateData = $request->validated();
-
-            $presentation = null;
-            if($request->hasFile('presentation')) {
-                $validateData['presentation'] = $request->file('presentation')->store('assets/presentations', 'public');
-            }
-
-            $validateData['user_id'] = auth()->id();
-
-            TalkProposal::create($validateData);
-
-            if(isset($valdateData['tags'])){
-                $proposal->tags()->attach($valdateData['tags']);
-            }
-
-            // Notify reviewers about the new proposal
-            $reviewers = User::role(['reviewer'])->get();
-            foreach($reviewers as $reviewer){
-                $reviewer->notify(new ProposalSubmitted($proposal));
-            }
-
-            return response()->json(
-                ['message' => 'Talk proposal created successfully.','proposal' => $proposal->load(['user', 'tags'])],
-                201);
-
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'required|string',
+                'duration' => 'required|integer',
+                'presentation_file' => 'required|file|mimes:pdf|max:10240',
+                'tags' => 'required|array'
+            ]);
+    
+            $filePath = $request->file('presentation_file')
+                ->store('presentations', 'public');
+    
+            $proposal = TalkProposal::create([
+                'speaker_id' => auth()->user()->speaker->id,
+                'title' => $validated['title'],
+                'description' => $validated['description'],
+                'duration' => $validated['duration'],
+                'presentation_file' => $filePath,
+                'status' => TalkProposal::STATUS_PENDING
+            ]);
+    
+            $proposal->attachTags($validated['tags']);
+    
+            return response()->json([
+                'message' => 'Proposal submitted successfully',
+                'proposal' => $proposal
+            ]);
         }
-        // Display a listing of the resource.
+    
         public function index(Request $request)
         {
-            $query = TalkProposal::with(['speaker','tags','reviews'])
-            ->when($request->tag, function ($query, $tag) {
-                return $query->whereHas('tags', function ($q) use ($tag){
-                    $q->where('name', $tag);
+            $query = TalkProposal::query()
+                ->with(['speaker.user', 'tags']);
+    
+            if ($request->has('tag')) {
+                $query->withAnyTags([$request->tag]);
+            }
+    
+            if ($request->has('speaker')) {
+                $query->whereHas('speaker.user', function ($q) use ($request) {
+                    $q->where('name', 'like', "%{$request->speaker}%");
                 });
-            })
-            ->when($request->status, function ($query, $status){
-                return $query->where('status', $status);
-            })
-            ->when($request->search, function($query, $search) {
-                return $query->where(function ($q) use ($search){
-                $q->where('title','like', "%{$search}")
-                ->orwhere('description','like', "%{$search}");
-            });
-        });
-            return response()->json($query->paginate(10));
+            }
+    
+            $proposals = $query->paginate(15);
+    
+            return response()->json($proposals);
         }
 
     }
