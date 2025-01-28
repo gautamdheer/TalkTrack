@@ -1,11 +1,24 @@
-    <?php
+<?php
 
-    use Illuminate\Http\Request;
-    use App\Models\TalkProposal;
+namespace App\Http\Controllers;
+use Illuminate\Http\Request;
+use App\Models\TalkProposal;
+use App\Models\Tag;
+use App\Models\Speaker;
+use App\Http\Controllers\Controller;
 
     class TalkProposalController extends Controller
     {
             
+        public function create()
+        {
+            // pass the tags to the view
+            $tags = Tag::all();
+            // pass the speakers to the view
+            $speakers = Speaker::all();
+            return view('proposals.create', compact('tags', 'speakers'));
+            
+        }
         public function store(Request $request)
         {
             $validated = $request->validate([
@@ -42,7 +55,7 @@
                 ->with(['speaker.user', 'tags']);
     
             if ($request->has('tag')) {
-                $query->withAnyTags([$request->tag]);
+                $query->withAnyTags([$requestcle->tag]);
             }
     
             if ($request->has('speaker')) {

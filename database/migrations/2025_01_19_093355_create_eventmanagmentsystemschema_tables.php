@@ -75,6 +75,13 @@ return new class extends Migration
             $table->timestamps();
             $table->unique(['user_id', 'talk_proposal_id']);
         });
+        // Tags Table
+        Schema::create('tags', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->timestamps();
+        });
+        
     }
 
     /**
@@ -87,6 +94,8 @@ return new class extends Migration
         Schema::dropIfExists('reviews');
         Schema::dropIfExists('talk_proposal_revisions');
         Schema::dropIfExists('reviewer_assignments');
+        Schema::dropIfExists('tags');
+
 
 
     }

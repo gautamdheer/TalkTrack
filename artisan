@@ -12,4 +12,8 @@ require __DIR__.'/vendor/autoload.php';
 $status = (require_once __DIR__.'/bootstrap/app.php')
     ->handleCommand(new ArgvInput);
 
+// Run the command to clear the application cache to resolve potential caching issues.
+$status = (require_once __DIR__.'/bootstrap/app.php')
+    ->handleCommand(new ArgvInput(['command' => 'cache:clear']));
+
 exit($status);

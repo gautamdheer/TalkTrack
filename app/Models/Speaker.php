@@ -1,13 +1,16 @@
 <?php
 
 namespace App\Models;
-
+use App\Models\User;
+use App\Models\TalkProposal;
+use Illuminate\Database\Eloquent\SoftDeletes;
+  
 use Illuminate\Database\Eloquent\Model;
 
 class Speaker extends Model
 {
     
-    use SoftDeletes, LogsActivity;
+    use SoftDeletes;
 
     protected $fillable = [
         'user_id',
